@@ -14,7 +14,7 @@ public class BoardSquare extends Rectangle {
 	
 	
 	public BoardSquare(int row, int col, int size){
-		super(100, 100);
+		super(size, size);
         this.row = row;
         this.column = col;
 	}

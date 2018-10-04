@@ -1,6 +1,5 @@
 package tictactoe;
 
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -22,7 +21,8 @@ public class GameController {
 	private Button newGameButton;
 	
 	private TicTacToeGame game;
-	
+
+	public static int boardSize = 4;
 
 	public GameController() {
 		// nothing to iniitialize yet.
@@ -30,16 +30,16 @@ public class GameController {
 	
 	@FXML
 	public void initialize() {
-		game = new TicTacToeGame(3);
+		game = new TicTacToeGame(boardSize);
 		Board board = game.getBoard();
 		// make the board size match the size of pane where it is shown
 		centerPane.getChildren().add(board);
 		centerPane.prefWidthProperty().bind(board.prefWidthProperty());
 		centerPane.prefHeightProperty().bind(board.prefHeightProperty());
 		
-		// Listen to each square for mouse click and invoke handleCellClicked()
-		EventHandler<MouseEvent> onMouseClick = this::handleCellClicked; // this is a reference to method handleCellClicked()
-		board.getChildren().forEach(child -> child.setOnMouseClicked(onMouseClick));
+		// listen to each square for mouse click
+		EventHandler<MouseEvent> mouseClicked = this::handleCellClicked;
+		board.getChildren().forEach(child -> child.setOnMouseClicked(mouseClicked));
 		// The "New Game" button action
 		newGameButton.setOnAction( this::handleNewGameEvent );
 		

@@ -1,0 +1,103 @@
+<!--
+    Ant build file for sample project.
+	For a list of build tasks enter:  ant -p
+    lib.dir contains JUnit JAR files.
+    To specify your own lib dir use:
+      ant -Dlib.dir=/your/junit/dir test
+ -->
+<project name="demo-ci" default="test" basedir=".">
+    <description> Demo project for testing with CI. </description>
+
+    <!-- location of src and output (build) directories. -->
+    <!-- TODO define properties for these. -->
+    <property name="src.dir" location="src"/>
+    <property name="build.dir" location="bin"/>
+    <property name="dist.dir" location="."/>
+    <property name="test.src.dir" location="test" />
+    <property name="test.build.dir" location="bin/test" />
+    <!-- lib.dir contains JUnit libraries -->
+    <property name="lib.dir" value="lib" />
+
+    <!-- TODO Replace constants "src", "bin", "bin/test", "test", "lib", "."
+              in the following rules with the properties named above
+     -->
+
+    <path id="test.classpath">
+        <!-- include all Jars in the lib directory (for JUnit) -->
+        <fileset dir="lib" includes="*.jar" />
+        <!-- always need the build directory on the classpath -->
+        <pathelement location="bin" />
+    </path>
+
+    <!-- The "deps" target is used on Travis CI to install dependencies. -->
+    <target name="deps"
+            description="Install JUnit jars. Needed for Travis-CI." >
+        <!-- Install JUnit from Maven central -->
+        <!-- Two different style URLs to download stuff from Maven Central -->
+        <mkdir dir="lib" />
+        <!-- http://central.maven.org/maven2/junit/junit/4.12/junit-4.12.jar -->
+        <get dest="lib/junit-4.12.jar"
+             src="http://search.maven.org/remotecontent?filepath=junit/junit/4.12/junit-4.12.jar"
+             skipexisting="true"
+             verbose="true" />
+        <get dest="lib/hamcrest-core-1.3.jar"
+             src="http://central.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+             skipexisting="true"
+             verbose="true" />
+    </target>
+
+    <target name="clean" description="Delete build products and build directory">
+        <delete dir="bin" />
+    </target>
+
+    <!-- create the build directory for output -->
+    <target name="init" description="Create output directories if they don't exist" >
+        <mkdir dir="bin" />
+        <mkdir dir="bin/test" />
+    </target>
+
+    <!-- compile the source code -->
+    <target name="compile" depends="init" description="Compile source code" >
+        <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" />
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}">
+                <include name="**/*.fxml"/>
+            </fileset>
+        </copy>
+    </target>
+    <!-- compile the test code -->
+    <target name="test-compile" depends="init,compile"
+            description="Compile unit test source code" >
+        <javac srcdir="test" destdir="bin/test" includeantruntime="false" >
+            <classpath refid="test.classpath" />
+        </javac>
+    </target>
+
+
+    <!-- Test the code using JUnit. -->
+    <target name="test" depends="test-compile" description="Run unit tests" >
+        <junit fork="true" printsummary="on" haltonfailure="false">
+            <classpath>
+                <path refid="test.classpath" />
+                <pathelement location="bin/test" />
+            </classpath>
+            <!-- What classes contain JUnit tests? -->
+            <batchtest>
+                <fileset dir="bin/test" includes="**/*Test.class" />
+            </batchtest>
+        </junit>
+    </target>
+    <target name="jar" depends="compile" description="Create runnable JAR file of project">
+        <mkdir dir="dist"/>
+        <jar destfile="dist/TicTacToe.jar"
+              basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class"
+                           value="tictactoe.Main"/>
+            </manifest>
+        </jar>
+    </target>
+    <target name="run" depends="jar">
+        <java jar="dist/TicTacToe.jar" fork="true"/>
+    </target>
+</project>
